@@ -1,0 +1,32 @@
+[*]
+[*] GTKWave Analyzer v3.3.111 (w)1999-2020 BSI
+[*] Fri Dec 22 21:49:32 2023
+[*]
+[dumpfile] "/home/tom/Documents/找工作/2024/nvidia/reg_ctrl/testbench.vcd"
+[dumpfile_mtime] "Fri Dec 22 21:38:53 2023"
+[dumpfile_size] 1202
+[savefile] "/home/tom/Documents/找工作/2024/nvidia/reg_ctrl/signals.gtkw"
+[timestart] 5077
+[size] 1910 469
+[pos] -1 -1
+*-10.266100 9000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[treeopen] testbench.
+[sst_width] 276
+[signals_width] 160
+[sst_expanded] 1
+[sst_vpaned_height] 112
+@28
+testbench.clk
+testbench.rstn
+testbench.ready
+@24
+testbench.rdata[15:0]
+testbench.wdata[15:0]
+@28
+testbench.wr
+@29
+testbench.uut.ready_dly
+@28
+testbench.uut.ready_pe
+[pattern_trace] 1
+[pattern_trace] 0
