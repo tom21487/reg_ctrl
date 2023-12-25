@@ -1,3 +1,5 @@
+// 最新版本在Latitude（之后有可能在CAEN）
+// Enable SystemVerilog support in Icarus Verilog with flag -g2005-sv. May need to use VCS.
 // Note that in this protocol:
 // - Write data is provided in a single clock along with the address.
 // - Read data is received on the next clock, and no transactions can be started during that time indicated by "ready" signal.

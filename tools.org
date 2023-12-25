@@ -1,0 +1,6 @@
+#+title: Free SystemVerilog verification simulators
+#+author: Tom Jiao
+#+date: 2023-12-22
+EDA Playground: https://www.edaplayground.com/home
+Mentor Questa: https://www.intel.com/content/www/us/en/software-kit/795215/questa-intel-fpgas-standard-edition-software-version-23-1.html
+Xilinx Vivado: https://www.xilinx.com/support/download/index.html/content/xilinx/en/downloadNav/vivado-design-tools.html

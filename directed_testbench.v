@@ -1,5 +1,5 @@
+// Directed testbench using Verilog 2001.
 // This testbench is to make sense of the module's behaviour before conducting constraint random verification.
-
 // Defines timescale for simulation: <time_unit> / <time_precision>
 `timescale 1 ns / 10 ps
 
