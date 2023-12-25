@@ -82,6 +82,7 @@ class monitor;
                 item.wdata = vif.wdata;
 
                 if (!vif.wr) begin
+                    // Wait a clock for ready to go high.
                     @(posedge vif.clk);
         	    item.rdata = vif.rdata;
                 end
@@ -108,15 +109,16 @@ class scoreboard;
             reg_item item;
             scb_mbx.get(item);
             item.print("Scoreboard");
-            
+
+            // Write
             if (item.wr) begin
                 if (refq[item.addr] == null)
                     refq[item.addr] = new;
-                
                 refq[item.addr] = item;
                 $display ("T=%0t [Scoreboard] Store addr=0x%0h wr=0x%0h data=0x%0h", $time, item.addr, item.wr, item.wdata);
             end
-            
+
+            // Read
             if (!item.wr) begin
                 if (refq[item.addr] == null)
                     if (item.rdata != 'h1234)
@@ -126,6 +128,8 @@ class scoreboard;
           		$display ("T=%0t [Scoreboard] PASS! First time read, addr=0x%0h exp=1234 act=0x%0h",
                     	    $time, item.addr, item.rdata);
                 else
+                    // The scoreboard only checks that the data read at an address is the data that you wrote to that address.
+                    // The timing of the ready signal is handled by the driver (wait until ready is high).
                     if (item.rdata != refq[item.addr].wdata)
                         $display ("T=%0t [Scoreboard] ERROR! addr=0x%0h exp=0x%0h act=0x%0h",
                             $time, item.addr, refq[item.addr].wdata, item.rdata);
@@ -146,7 +150,8 @@ class env;
     driver 			d0; 		// Driver to design
     monitor 			m0; 		// Monitor from design
     scoreboard 		s0; 		// Scoreboard connected to monitor
-    mailbox 			scb_mbx; 	// Top level mailbox for SCB <-> MON 
+    mailbox 			scb_mbx; 	// Top level mailbox for SCB <-> MON
+                                                //                scoreboard <-> monitor
     virtual reg_if 	vif; 		// Virtual interface handle
     
     // Instantiate all testbench components
@@ -163,6 +168,7 @@ class env;
     virtual task run();
         d0.vif = vif;
         m0.vif = vif;
+        // Monitor and scoreboard share the same mailbox.
         m0.scb_mbx = scb_mbx;
         s0.scb_mbx = scb_mbx;
         
@@ -178,7 +184,7 @@ endclass
 // an environment without the generator and hence the stimulus should be 
 // written in the test. 
 class test;
-    env e0;
+    env e0; // From class env
     mailbox drv_mbx;
     
     function new();
