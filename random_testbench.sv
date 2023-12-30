@@ -149,23 +149,27 @@ endclass
 class env;
     driver 			d0; 		// Driver to design
     monitor 			m0; 		// Monitor from design
-    scoreboard 		s0; 		// Scoreboard connected to monitor
+    scoreboard 		        s0; 		// Scoreboard connected to monitor
     mailbox 			scb_mbx; 	// Top level mailbox for SCB <-> MON
                                                 //                scoreboard <-> monitor
-    virtual reg_if 	vif; 		// Virtual interface handle
-    
+                                                // Recall that a mailbox is a thread-safe queue
+    virtual reg_if vif;	// Virtual interface handle
+    // ChatGPT: A virtual interface handle is a variable that can be assigned a reference to an instance of an interface. The virtual keyword is used to declare such a handle, allowing it to refer to objects of both the base interface type and any of its derived types.
+    // The reference for vif is set in module tb's initial begin block. I.e. the actual interface object is instantiated in module tb.
+
     // Instantiate all testbench components
     function new();
-        d0 = new;
-        m0 = new;
-        s0 = new;
-        scb_mbx = new();
+        d0 = new; // Driver has no constructor.
+        m0 = new; // Monitor has no constructor.
+        s0 = new; // Scoreboard has no constructor.
+        scb_mbx = new(); // mailbox's constructor is new(int bound = 0).
     endfunction
-    
+
     // Assign handles and start all components so that 
     // they all become active and wait for transactions to be
     // available
     virtual task run();
+        // Driver, monitor, environment, testbench all share the same virtual interface handle.
         d0.vif = vif;
         m0.vif = vif;
         // Monitor and scoreboard share the same mailbox.
@@ -176,7 +180,7 @@ class env;
     	    s0.run();
 	    d0.run();
     	    m0.run();
-        join_any
+        join_any // Allow main thread to continue execution if any of the child threads finish.
     endtask
 endclass
 
@@ -184,20 +188,20 @@ endclass
 // an environment without the generator and hence the stimulus should be 
 // written in the test. 
 class test;
-    env e0; // From class env
-    mailbox drv_mbx;
-    
+    env e0;
+    mailbox drv_mbx; // mailbox = thread-safe queue, if put() and get() happen on the same delta cycle then the ordering is mostly arbitrary (i.e. an ordering to prevent deadlock will be preferred whenever possible).
+
     function new();
-        drv_mbx = new();
+        drv_mbx = new(); // new() here means to invoke the constructor of a dynamically allocated object.
         e0 = new();
     endfunction
     
-    virtual task run();
-        e0.d0.drv_mbx = drv_mbx;
+    virtual task run(); // virtual means that the task can be overridden by a child class.
+        e0.d0.drv_mbx = drv_mbx; // environment's driver's mailbox.
         
         fork
     	    e0.run();
-        join_none
+        join_none // Allow the main thread to keep running while the child threads are also running.
         
         apply_stim();
     endtask
@@ -206,7 +210,7 @@ class test;
         reg_item item;
         
         $display ("T=%0t [Test] Starting stimulus ...", $time);
-        item = new;
+        item = new; // Create a new instance of a class that doesn't have a constructor.
         item.randomize() with { addr == 8'haa; wr == 1; };
         drv_mbx.put(item);
         
@@ -216,7 +220,11 @@ class test;
     endtask
 endclass
 
-// Interface
+// Interface for abstraction (hide complexity from users and only show them relevant information).
+// https://chipverify.com/systemverilog/systemverilog-interface and
+// A logic has 4 states { 0, 1, X, Z }
+// A bit has 2 states { 0, 1 }, X and Z show up as 0
+// Unlike classes, when interfaces are instantiated you don't need to use new because interfaces are purely abstract.
 // The interface allows verification components to access DUT signals
 // using a virtual interface handle
 interface reg_if (input bit clk);
@@ -237,9 +245,10 @@ endinterface
 module tb;
     reg clk;
     
-    always #10 clk = ~clk;
+    always #10 clk = ~clk; // Clock period = 20 ns
     reg_if _if (clk);
-    
+
+    // Instatiate DUT.
     reg_ctrl u0 ( .clk (clk),
         .addr (_if.addr),
         .rstn(_if.rstn),
@@ -248,19 +257,20 @@ module tb;
         .wdata (_if.wdata),
         .rdata (_if.rdata),
         .ready (_if.ready));
-    
+
     initial begin
-        // new_test t0;
-        test t0;
-        
+        // The test contains the environment, which contains the driver, monitor and scoreboard.
+        test t0; // was new_test t0;
+
+        // Reset the DUT.
         clk <= 0;
         _if.rstn <= 0;
         _if.sel <= 0;
         #20 _if.rstn <= 1;
-        
-        t0 = new;
-        t0.e0.vif = _if;
-        t0.run();
+
+        t0 = new; // new creates an instance of a class, new() is used to allocated memory for an array or dynamic data structure.
+        t0.e0.vif = _if; // The test's environment's virtual interface handle points to the interface we instantiated in this module.
+        t0.run(); // this does environment::run() and apply_stim()
         
         // Once the main stimulus is over, wait for some time
         // until all transactions are finished and then end 
