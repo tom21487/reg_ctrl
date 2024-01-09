@@ -1,6 +1,7 @@
 // Constraint random verification testbench using SystemVerilog 2005.
 
 // Transaction object
+// Used to instantiate test cases with random parameters.
 class reg_item;
     // This is the base transaction object that will be used
     // in the environment to initiate new transactions and 
@@ -24,9 +25,10 @@ endclass
 // available and drive it out into the DUT interface.
 class driver;
     virtual reg_if vif;
-    event drv_done;
+    event drv_done; // Event-driven concurrency (instead of thread-driven).
+                    // I feel like this event is unused.
     mailbox drv_mbx;
-    
+
     task run();
         $display ("T=%0t [Driver] starting ...", $time);
         @ (posedge vif.clk);
@@ -40,7 +42,7 @@ class driver;
             $display ("T=%0t [Driver] waiting for item ...", $time);
             drv_mbx.get(item);      
 	    item.print("Driver");
-            vif.sel <= 1;
+            vif.sel <= 1; // Select device.
             vif.addr 	<= item.addr;
             vif.wr 	<= item.wr;
             vif.wdata <= item.wdata;
@@ -49,11 +51,11 @@ class driver;
                 $display ("T=%0t [Driver] wait until ready is high", $time);
                 @(posedge vif.clk);
             end
-            
+
             // When transfer is over, raise the done event
-            vif.sel <= 0;
+            vif.sel <= 0; // De-select device.
             ->drv_done;
-        end   
+        end
     endtask
 endclass
 
@@ -120,6 +122,7 @@ class scoreboard;
 
             // Read
             if (!item.wr) begin
+                // 1. Check first time reads.
                 if (refq[item.addr] == null)
                     if (item.rdata != 'h1234)
               	        $display ("T=%0t [Scoreboard] ERROR! First time read, addr=0x%0h exp=1234 act=0x%0h",
@@ -127,6 +130,7 @@ class scoreboard;
           	    else
           		$display ("T=%0t [Scoreboard] PASS! First time read, addr=0x%0h exp=1234 act=0x%0h",
                     	    $time, item.addr, item.rdata);
+                // 2. Check other reads.
                 else
                     // The scoreboard only checks that the data read at an address is the data that you wrote to that address.
                     // The timing of the ready signal is handled by the driver (wait until ready is high).
@@ -173,14 +177,16 @@ class env;
         d0.vif = vif;
         m0.vif = vif;
         // Monitor and scoreboard share the same mailbox.
+        // This is different than the mailbox shared between class driver and class test
         m0.scb_mbx = scb_mbx;
         s0.scb_mbx = scb_mbx;
         
-        fork
+        fork // Spawns three separate threads.
     	    s0.run();
 	    d0.run();
     	    m0.run();
         join_any // Allow main thread to continue execution if any of the child threads finish.
+        // Using 'join' instead of 'join_any' also works.
     endtask
 endclass
 
@@ -202,7 +208,9 @@ class test;
         fork
     	    e0.run();
         join_none // Allow the main thread to keep running while the child threads are also running.
-        
+        // Must be 'join_none' instead of 'join' otherwise will hang on "T=30 [Driver] waiting for item ..."
+        // This is because 'join_none' makes env::run() and apply_stim() execute in parallel.
+
         apply_stim();
     endtask
     
@@ -226,7 +234,8 @@ endclass
 // A bit has 2 states { 0, 1 }, X and Z show up as 0
 // Unlike classes, when interfaces are instantiated you don't need to use new because interfaces are purely abstract.
 // The interface allows verification components to access DUT signals
-// using a virtual interface handle
+// using a virtual interface handle.
+// It is used so that [module tb] [class env] [class driver] [class monitor] all share the same IO packet.
 interface reg_if (input bit clk);
     logic rstn;
     logic [7:0] addr;

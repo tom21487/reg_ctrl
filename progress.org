@@ -1,0 +1,27 @@
+#+title: SV testbench analysis progress
+#+author: Tom Jiao
+#+date: #+date: 2023-12-22
+
+Link to example: https://chipverify.com/systemverilog/systemverilog-testbench-example-1
+
+* Tasks
+** DONE output-join-new.txt
+** TODO Trace [[file:output-join-ori.txt][output-join-ori.txt]] line by line
+*** Better debugging experience
+- [ ] Add more print statements
+- [ ] GDB-style debugging in SystemVerilog, best to use a commercial debugger such as VCS or Questa
+- [ ] Clarify the relationship between driver::vif, monitor::vif and DUT
+Refer to multi-threaded view on Jnotes
+* Breadth-first search to understand code
+The idea is we look through the main() function first and then we go into the details.
+BFS requires a queue.
+queue = [ ]
+
+* Miscellaneous notes
+** Events
+In a race condition, wait(event_a.triggered) is preferred over @(event_a).
+
+* Free SystemVerilog verification simulators
+EDA Playground: https://www.edaplayground.com/home
+Mentor Questa: https://www.intel.com/content/www/us/en/software-kit/795215/questa-intel-fpgas-standard-edition-software-version-23-1.html
+Xilinx Vivado: https://www.xilinx.com/support/download/index.html/content/xilinx/en/downloadNav/vivado-design-tools.html

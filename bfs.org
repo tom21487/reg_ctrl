@@ -1,6 +1,0 @@
-#+title: Breadth-first search to understand code
-#+author: Tom Jiao
-#+date: 2023-12-27
-The idea is we look through the main() function first and then we go into the details.
-BFS requires a queue.
-queue = [ reg_item vs reg_if, review [[file:testbench-structure.png][testbench_structure.png]], class driver, class monitor, class scoreboard, where is scoreboard's virtual interface handle?, where is driver's mailbox?, change join_none & join_any to join (may make more things run) ]
