@@ -61,7 +61,7 @@ module reg_ctrl
       	      ready <= 1;
           end
 	  if (sel & ready & !wr) begin
-              ready <= 0;
+              ready <= 0; // ready will be low on the next cycle.
           end
       end
   end

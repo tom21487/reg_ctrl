@@ -40,7 +40,7 @@ class driver;
             reg_item item;
             
             $display ("T=%0t [Driver] waiting for item ...", $time);
-            drv_mbx.get(item);      
+            drv_mbx.get(item);
 	    item.print("Driver");
             vif.sel <= 1; // Select device.
             vif.addr 	<= item.addr;
@@ -70,7 +70,7 @@ class monitor;
     
     task run();
         $display ("T=%0t [Monitor] starting ...", $time);
-        
+
         // Check forever at every clock edge to see if there is a 
         // valid transaction and if yes, capture info into a class
         // object and send it to the scoreboard when the transaction 
@@ -84,7 +84,7 @@ class monitor;
                 item.wdata = vif.wdata;
 
                 if (!vif.wr) begin
-                    // Wait a clock for ready to go high.
+                    // Wait a clock since rdata becomes valid on the next cycle.
                     @(posedge vif.clk);
         	    item.rdata = vif.rdata;
                 end
@@ -107,6 +107,7 @@ class scoreboard;
     reg_item refq[256];
     
     task run();
+        $display ("T=%0t [Scoreboard] starting ...", $time);
         forever begin
             reg_item item;
             scb_mbx.get(item);
@@ -225,6 +226,8 @@ class test;
         item = new;
         item.randomize() with { addr == 8'haa; wr == 0; };
         drv_mbx.put(item);
+
+        // With the existing structure, one can add more randomised tests to the driver mailbox.
     endtask
 endclass
 

@@ -1,0 +1,32 @@
+Concurrent threads that do stuff:
+thread 0 / test::apply_stim() (does not take simulation time)
+thread 2 / driver::run()
+thread 3 / monitor::run()
+thread 4 / scoreboard::run()
+                                                           | First reset is held low for 20 ns.
+T=20 [Test] Starting stimulus ...                          | thread 0 / test::apply_stim()
+T=20 [Driver] starting ...                                 | thread 2 / driver::run()
+T=20 [Monitor] starting ...                                | thread 3 / monitor::run()
+T=20 [Scoreboard] starting ...                             | thread 4 / scoreboard::run()
+                                                           | + 10 ns go to posedge
+T=30 [Driver] waiting for item ...                         | thread 2 / driver::run(), wait to receive first item from generator
+T=30 [Driver] addr=0xaa wr=1 wdata=0xe513 rdata=0x0        | thread 2 / driver::run(), calls reg_item::print() for first packet (write)
+                                                           | A write will not pull ready low, hence the DUT remains ready following a write.
+                                                           | All threads that take simulation time wait for next posedge
+T=50 [Driver] waiting for item ...                         | thread 2 / driver::run(), wait to receive next item from generator
+T=50 [Driver] addr=0xaa wr=0 wdata=0x5fa7 rdata=0x0        | thread 2 / driver::run(), calls reg_item::print() for second packet (read)
+T=50 [Monitor] addr=0xaa wr=1 wdata=0xe513 rdata=0x0       | thread 3 / monitor::run(), monitor receives first packet (write), showing wdata from driver
+T=50 [Scoreboard] addr=0xaa wr=1 wdata=0xe513 rdata=0x0    | thread 4 / scoreboard::run(), scoreboard receives first packet (write)
+T=50 [Scoreboard] Store addr=0xaa wr=0x1 data=0xe513       |                               scoreboard will apply the write to the reference model
+                                                           | All threads that take simulation time wait for next posedge
+T=70 [Driver] waiting for item ...                         | thread 2 / driver::run(), wait to receive next item from generator
+                                                           | Now there is nothing in the driver's mailbox so it will wait indefinitely
+T=90 [Monitor] addr=0xaa wr=0 wdata=0x5fa7 rdata=0xe513    | thread 3 / monitor::run(), monitor receives first packet (read), showing rdata from DUT
+T=90 [Scoreboard] addr=0xaa wr=0 wdata=0x5fa7 rdata=0xe513 | thread 4 / scoreboard::run(), scoreboard receives second packet (read)
+T=90 [Scoreboard] PASS! addr=0xaa exp=0xe513 act=0xe513    |                               scoreboard checks the rdata with the reference model 
+
+At this point the three live threads deadlock, and the simulation runs until the finish time of 220 ns.
+thread 2 / driver::run() is waiting on drv_mbx.get()
+thread 3 / monitor::run() continously runs @(posedge vif.clk) in a tight loop because vif.sel = 0
+thread 4 / scoreboard::run() is waiting on scb_mbx.get()
+i.e. The simulation is effectively finished when all the tests in apply_stim() have been run.

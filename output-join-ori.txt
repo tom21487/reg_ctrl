@@ -1,12 +1,9 @@
-                                                           | First reset is held low for 20 ns.
-T=20 [Test] Starting stimulus ...                          | thread 0 / test::apply_stim()
-T=20 [Driver] starting ...                                 | thread 2 / driver::run()
-T=20 [Monitor] starting ...                                | thread 3 / monitor::run()
-
-T=30 [Driver] waiting for item ...                         | thread 2 / driver::run(), wait to receive first item from generator
-T=30 [Driver] addr=0xaa wr=1 wdata=0xe513 rdata=0x0        | thread 2 / driver::run(), calls reg_item::print()
-                                                           | A write will not pull ready low, hence the DUT remains ready following a write.
-T=50 [Driver] waiting for item ...                         | thread 2 / driver::run(), wait to receive next item from generator
+T=20 [Test] Starting stimulus ...
+T=20 [Driver] starting ...
+T=20 [Monitor] starting ...
+T=30 [Driver] waiting for item ...
+T=30 [Driver] addr=0xaa wr=1 wdata=0xe513 rdata=0x0
+T=50 [Driver] waiting for item ...
 T=50 [Driver] addr=0xaa wr=0 wdata=0x5fa7 rdata=0x0
 T=50 [Monitor] addr=0xaa wr=1 wdata=0xe513 rdata=0x0
 T=50 [Scoreboard] addr=0xaa wr=1 wdata=0xe513 rdata=0x0

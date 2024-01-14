@@ -6,11 +6,12 @@ Link to example: https://chipverify.com/systemverilog/systemverilog-testbench-ex
 
 * Tasks
 ** DONE output-join-new.txt
-** TODO Trace [[file:output-join-ori.txt][output-join-ori.txt]] line by line
+** DONE Trace [[file:output-join-ori-annotated.txt][output-join-ori-annotated.txt]] line by line
 *** Better debugging experience
-- [ ] Add more print statements
-- [ ] GDB-style debugging in SystemVerilog, best to use a commercial debugger such as VCS or Questa
-- [ ] Clarify the relationship between driver::vif, monitor::vif and DUT
+- [X] Complete the 470 lab 1 tutorial
+- [X] Add more print statements
+- [X] GDB-style debugging in SystemVerilog, best to use a commercial debugger such as Verdi or Questa. (This could be difficult for multi-threaded code, nvm Verdi 打法好)
+- [X] Clarify the relationship between driver::vif, monitor::vif and DUT. Driver sends signals to DUT through vif. Monitor does one of two things, 1) send write data packet from driver to scoreboard, 2) send read data packet from DUT to scoreboard. This is because the scoreboard contains the reference model and the monitor needs to keep the DUT and the reference model in sync (synced driver inputs for writes, synced output checking for reads).
 Refer to multi-threaded view on Jnotes
 * Breadth-first search to understand code
 The idea is we look through the main() function first and then we go into the details.
@@ -22,6 +23,10 @@ queue = [ ]
 In a race condition, wait(event_a.triggered) is preferred over @(event_a).
 
 * Free SystemVerilog verification simulators
-EDA Playground: https://www.edaplayground.com/home
-Mentor Questa: https://www.intel.com/content/www/us/en/software-kit/795215/questa-intel-fpgas-standard-edition-software-version-23-1.html
-Xilinx Vivado: https://www.xilinx.com/support/download/index.html/content/xilinx/en/downloadNav/vivado-design-tools.html
+** [[https://www.edaplayground.com/home][EDA Playground]]
+Free output but no debugging.
+** [[https://www.intel.com/content/www/us/en/software-kit/795215/questa-intel-fpgas-standard-edition-software-version-23-1.html][Mentor Questa]]
+Not used because it's kind of hard to install. I'm not even sure if it's free.
+** [[https://www.xilinx.com/support/download/index.html/content/xilinx/en/downloadNav/vivado-design-tools.html][Xilinx Vivado]]
+Not used because it doesn't support simulation of SystemVerilog testbench.
+** Synopsys VCS (via [[https://teamdynamix.umich.edu/TDClient/76/Portal/KB/ArticleDet?ID=5001][CAEN]])
